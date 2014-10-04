@@ -2,18 +2,18 @@
 <package >
   <metadata>
     <id>Cachew.CastleWindsor</id>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
     <title>Cachew.CastleWindsor</title>
     <authors>Jakob Jónasson</authors>
     <owners>Jakob Jónasson</owners>
     <projectUrl>https://github.com/kobbikobb/Cachew</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Castle windsor interceptor that decorates interfaces with cachew cache</description>
+    <description>Castle windsor interceptor that decorates interfaces with cachew cache and decorator builder that decorates interfaces with cache</description>
     <releaseNotes>Initial release</releaseNotes>
     <copyright>Copyright 2014</copyright>
     <tags>Cache CastleWindsor</tags>
 	<dependencies>
-      <dependency id="Cachew" version="1.0.1" />
+      <dependency id="Cachew" version="1.0.5" />
     </dependencies>
   </metadata>
 </package>
