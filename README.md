@@ -40,4 +40,11 @@ var server = container.Resolve<Server>();
 var result = server.GetStuff(3);
 ```
 
+How to create a cached version of a class with a decorator builder:
+```c#
+var server = new CacheDecoratorBuilder().BuildFromInterface(typeof(IServer));
+server.GetStuff(3);
+```
+            
+
 
