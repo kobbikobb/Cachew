@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Cachew</id>
+    <version>1.0.1</version>
+    <title>Cachew</title>
+    <authors>Jakob Jónasson</authors>
+    <owners>Jakob Jónasson</owners>
+    <projectUrl>https://github.com/kobbikobb/Cachew</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Simple in memory caching library with an optional castle windsor interceptor</description>
+    <releaseNotes>Initial release</releaseNotes>
+    <copyright>Copyright 2014</copyright>
+    <tags>Cache CastleWindsor</tags>
+  </metadata>
+</package>
