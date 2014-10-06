@@ -33,7 +33,6 @@ var container = new WindsorContainer();
 container.Register(Component.For<CachingInterceptor>()
   .Instance(new CachingInterceptor(new Cache(TimeoutStyle.RenewTimoutOnQuery, TimeSpan.FromSeconds(3)))));
 container.Register(Component.For<IServer>().ImplementedBy<Server>().Interceptors<CachingInterceptor>());
-container.Register(Component.For<Server>());
 
 var server = container.Resolve<Server>();
 
@@ -42,8 +41,9 @@ var result = server.GetStuff(3);
 
 How to create a cached version of a class with a decorator builder:
 ```c#
-var server = new CacheDecoratorBuilder().BuildFromInterface(typeof(IServer));
-server.GetStuff(3);
+IServer server = new Server();
+var decoratedServer = new CacheDecoratorBuilder().BuildFromInterface(server);
+decoratedServer.GetStuff(3);
 ```
             
 
