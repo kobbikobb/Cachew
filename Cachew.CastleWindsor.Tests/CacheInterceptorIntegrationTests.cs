@@ -72,7 +72,7 @@ namespace Cachew.CastleWindsor.Tests
     }
 
     [TestFixture]
-    public class CachingInterceptorIntegrationTests
+    public class CacheInterceptorIntegrationTests
     {
         [Test]
         public void ResolveServiceWithInterceptor()
