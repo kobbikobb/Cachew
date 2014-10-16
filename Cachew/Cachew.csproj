@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cache.cs" />
+    <Compile Include="CacheKey.cs" />
     <Compile Include="Clock.cs" />
     <Compile Include="FixedClock.cs" />
     <Compile Include="ICache.cs" />
