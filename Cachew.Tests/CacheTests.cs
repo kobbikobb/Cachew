@@ -15,7 +15,7 @@ namespace Cachew.Tests
         private string expected;
         private Mock<IDummy> dummyMock;
         private IDummy dummy;
-        private string key;
+        private CacheKey key;
         private FixedClock clock;
         
         [SetUp]
@@ -24,7 +24,7 @@ namespace Cachew.Tests
             expected = "return string";
             dummyMock = new Mock<IDummy>();
             dummy = dummyMock.Object;
-            key = "key";
+            key = new CacheKey("MethodName");
             clock = new FixedClock(new TimeSpan(0));
 
             dummyMock.Setup(x => x.GetStuff()).Returns(expected);
@@ -83,24 +83,24 @@ namespace Cachew.Tests
         {
             var cache = new Cache(style, new TimeSpan(5));
 
-            cache.Get("1", dummy.GetStuff);
-            cache.Get("2", dummy.GetStuff);
-            cache.Get("3", dummy.GetStuff);
+            cache.Get(new CacheKey("1"), dummy.GetStuff);
+            cache.Get(new CacheKey("2"), dummy.GetStuff);
+            cache.Get(new CacheKey("3"), dummy.GetStuff);
 
             clock.Add(new TimeSpan(3));
 
-            cache.Get("4", dummy.GetStuff);
-            cache.Get("5", dummy.GetStuff);
-            cache.Get("6", dummy.GetStuff);
+            cache.Get(new CacheKey("4"), dummy.GetStuff);
+            cache.Get(new CacheKey("5"), dummy.GetStuff);
+            cache.Get(new CacheKey("6"), dummy.GetStuff);
 
             clock.Add(new TimeSpan(2));
 
-            cache.Get("1", dummy.GetStuff);
-            cache.Get("2", dummy.GetStuff);
-            cache.Get("3", dummy.GetStuff);
-            cache.Get("4", dummy.GetStuff);
-            cache.Get("5", dummy.GetStuff);
-            cache.Get("6", dummy.GetStuff);
+            cache.Get(new CacheKey("1"), dummy.GetStuff);
+            cache.Get(new CacheKey("2"), dummy.GetStuff);
+            cache.Get(new CacheKey("3"), dummy.GetStuff);
+            cache.Get(new CacheKey("4"), dummy.GetStuff);
+            cache.Get(new CacheKey("5"), dummy.GetStuff);
+            cache.Get(new CacheKey("6"), dummy.GetStuff);
 
             dummyMock.Verify(x => x.GetStuff(), Times.Exactly(9));
         }
@@ -110,27 +110,27 @@ namespace Cachew.Tests
         {
             var cache = new Cache(TimeoutStyle.RenewTimoutOnQuery, new TimeSpan(5));
 
-            cache.Get("1", dummy.GetStuff);
-            cache.Get("2", dummy.GetStuff);
-            cache.Get("3", dummy.GetStuff);
-            cache.Get("4", dummy.GetStuff);
-            cache.Get("5", dummy.GetStuff);
-            cache.Get("6", dummy.GetStuff);
+            cache.Get(new CacheKey("1"), dummy.GetStuff);
+            cache.Get(new CacheKey("2"), dummy.GetStuff);
+            cache.Get(new CacheKey("3"), dummy.GetStuff);
+            cache.Get(new CacheKey("4"), dummy.GetStuff);
+            cache.Get(new CacheKey("5"), dummy.GetStuff);
+            cache.Get(new CacheKey("6"), dummy.GetStuff);
 
             clock.Add(new TimeSpan(3));
 
-            cache.Get("2", dummy.GetStuff);
-            cache.Get("3", dummy.GetStuff);
-            cache.Get("5", dummy.GetStuff);
+            cache.Get(new CacheKey("2"), dummy.GetStuff);
+            cache.Get(new CacheKey("3"), dummy.GetStuff);
+            cache.Get(new CacheKey("5"), dummy.GetStuff);
 
             clock.Add(new TimeSpan(2));
 
-            cache.Get("1", dummy.GetStuff);
-            cache.Get("2", dummy.GetStuff);
-            cache.Get("3", dummy.GetStuff);
-            cache.Get("4", dummy.GetStuff);
-            cache.Get("5", dummy.GetStuff);
-            cache.Get("6", dummy.GetStuff);
+            cache.Get(new CacheKey("1"), dummy.GetStuff);
+            cache.Get(new CacheKey("2"), dummy.GetStuff);
+            cache.Get(new CacheKey("3"), dummy.GetStuff);
+            cache.Get(new CacheKey("4"), dummy.GetStuff);
+            cache.Get(new CacheKey("5"), dummy.GetStuff);
+            cache.Get(new CacheKey("6"), dummy.GetStuff);
 
             dummyMock.Verify(x => x.GetStuff(), Times.Exactly(9));
         }
