@@ -4,6 +4,6 @@ namespace Cachew
 {
     public interface ICache
     {
-        object Get<T>(object key, Func<T> func);
+        object Get<T>(CacheKey key, Func<T> func);
     }
 }

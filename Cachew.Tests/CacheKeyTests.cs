@@ -60,6 +60,24 @@ namespace Cachew.Tests
         }
 
         [Test]
+        public void TwoKeysWithSameNameAndSameParameterClassesAreEqual()
+        {
+            var key1 = new CacheKey("Name", 1, new {File="SomeFile.txt", Source="Target"});
+            var key2 = new CacheKey("Name", 1, new { File = "SomeFile.txt", Source = "Target" });
+
+            Assert.AreEqual(key1, key2);
+        }
+
+        [Test]
+        public void TwoKeysWithSameNameAndDifferentParameterClassesAreNotEqual()
+        {
+            var key1 = new CacheKey("Name", 1, new { File = "SomeFile.txt", Source = "Target" });
+            var key2 = new CacheKey("Name", 1, new { File = "SomeFile.txt", Source = "Target2" });
+
+            Assert.AreNotEqual(key1, key2);
+        }
+
+        [Test]
         public void KeyNameCanNotBeNull()
         {
             Assert.Throws<ArgumentNullException>(() => new CacheKey(null));

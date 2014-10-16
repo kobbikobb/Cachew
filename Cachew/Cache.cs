@@ -26,7 +26,7 @@ namespace Cachew
             this.timeout = timeout;
         }
 
-        public object Get<T>(object key, Func<T> func)
+        public object Get<T>(CacheKey key, Func<T> func)
         {
             RemoveExpiredItems();
 
@@ -43,6 +43,7 @@ namespace Cachew
             var newItem = new CacheItem(key, func());
             timedList.AddLast(newItem);
             return newItem.Value;
+
         }
 
         private void RenewItem(CacheItem valueObject)
@@ -70,11 +71,11 @@ namespace Cachew
 
         private class CacheItem
         {
-            public object Key { get; private set; }
+            public CacheKey Key { get; private set; }
             public object Value { get; private set; }
             public TimeSpan LastQueried { get; set; }
 
-            public CacheItem(object key, object value)
+            public CacheItem(CacheKey key, object value)
             {
                 Key = key;
                 Value = value;

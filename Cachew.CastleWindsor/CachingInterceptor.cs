@@ -21,6 +21,7 @@ namespace Cachew.CastleWindsor
 
         public CachingInterceptor(ICache cache) : this(cache, "Get")
         {
+
         }
 
         public void Intercept(IInvocation invocation)
@@ -32,7 +33,7 @@ namespace Cachew.CastleWindsor
             }
 
             invocation.ReturnValue = cache.Get(
-                GetMethodKey(invocation),
+                GetCacheKey(invocation),
                 () =>
                 {
                     invocation.Proceed();
@@ -40,15 +41,9 @@ namespace Cachew.CastleWindsor
                 });
         }
 
-        private static object GetMethodKey(IInvocation invocation)
+        private static CacheKey GetCacheKey(IInvocation invocation)
         {
-            string arguments = null;
-            if (invocation.Arguments.Length > 0)
-            {
-                arguments = invocation.Arguments.Select(x => x.ToString()).Aggregate((x, y) => x + "," + y);
-            }
-
-            return new { Method = invocation.Method.Name, Arguments = arguments };
+            return new CacheKey(invocation.Method.Name, invocation.Arguments);
         }
     }
 }

@@ -83,24 +83,24 @@ namespace Cachew.Tests
         {
             var cache = new Cache(style, new TimeSpan(5));
 
-            cache.Get(1, dummy.GetStuff);
-            cache.Get(2, dummy.GetStuff);
-            cache.Get(3, dummy.GetStuff);
+            cache.Get("1", dummy.GetStuff);
+            cache.Get("2", dummy.GetStuff);
+            cache.Get("3", dummy.GetStuff);
 
             clock.Add(new TimeSpan(3));
 
-            cache.Get(4, dummy.GetStuff);
-            cache.Get(5, dummy.GetStuff);
-            cache.Get(6, dummy.GetStuff);
+            cache.Get("4", dummy.GetStuff);
+            cache.Get("5", dummy.GetStuff);
+            cache.Get("6", dummy.GetStuff);
 
             clock.Add(new TimeSpan(2));
 
-            cache.Get(1, dummy.GetStuff);
-            cache.Get(2, dummy.GetStuff);
-            cache.Get(3, dummy.GetStuff);
-            cache.Get(4, dummy.GetStuff);
-            cache.Get(5, dummy.GetStuff);
-            cache.Get(6, dummy.GetStuff);
+            cache.Get("1", dummy.GetStuff);
+            cache.Get("2", dummy.GetStuff);
+            cache.Get("3", dummy.GetStuff);
+            cache.Get("4", dummy.GetStuff);
+            cache.Get("5", dummy.GetStuff);
+            cache.Get("6", dummy.GetStuff);
 
             dummyMock.Verify(x => x.GetStuff(), Times.Exactly(9));
         }
@@ -110,29 +110,51 @@ namespace Cachew.Tests
         {
             var cache = new Cache(TimeoutStyle.RenewTimoutOnQuery, new TimeSpan(5));
 
-            cache.Get(1, dummy.GetStuff);
-            cache.Get(2, dummy.GetStuff);
-            cache.Get(3, dummy.GetStuff);
-            cache.Get(4, dummy.GetStuff);
-            cache.Get(5, dummy.GetStuff);
-            cache.Get(6, dummy.GetStuff);
+            cache.Get("1", dummy.GetStuff);
+            cache.Get("2", dummy.GetStuff);
+            cache.Get("3", dummy.GetStuff);
+            cache.Get("4", dummy.GetStuff);
+            cache.Get("5", dummy.GetStuff);
+            cache.Get("6", dummy.GetStuff);
 
             clock.Add(new TimeSpan(3));
 
-            cache.Get(2, dummy.GetStuff);
-            cache.Get(3, dummy.GetStuff);
-            cache.Get(5, dummy.GetStuff);
+            cache.Get("2", dummy.GetStuff);
+            cache.Get("3", dummy.GetStuff);
+            cache.Get("5", dummy.GetStuff);
 
             clock.Add(new TimeSpan(2));
 
-            cache.Get(1, dummy.GetStuff);
-            cache.Get(2, dummy.GetStuff);
-            cache.Get(3, dummy.GetStuff);
-            cache.Get(4, dummy.GetStuff);
-            cache.Get(5, dummy.GetStuff);
-            cache.Get(6, dummy.GetStuff);
+            cache.Get("1", dummy.GetStuff);
+            cache.Get("2", dummy.GetStuff);
+            cache.Get("3", dummy.GetStuff);
+            cache.Get("4", dummy.GetStuff);
+            cache.Get("5", dummy.GetStuff);
+            cache.Get("6", dummy.GetStuff);
 
             dummyMock.Verify(x => x.GetStuff(), Times.Exactly(9));
+        }
+
+        [Test]
+        public void CacheIsNotUsedWithMethodsOfSameNameAndDifferentClassParameters()
+        {
+            var cache = new Cache(TimeoutStyle.RenewTimoutOnQuery, new TimeSpan(5));
+
+            cache.Get(new CacheKey("Name", new {Gender="Male", Age = 23}), dummy.GetStuff);
+            cache.Get(new CacheKey("Name", new {Gender="Male", Age = 24}), dummy.GetStuff);
+    
+            dummyMock.Verify(x => x.GetStuff(), Times.Exactly(2));
+        }
+
+        [Test]
+        public void CacheIsUsedWithMethodsOfSameNameAndSameClassParameters()
+        {
+            var cache = new Cache(TimeoutStyle.RenewTimoutOnQuery, new TimeSpan(5));
+
+            cache.Get(new CacheKey("Name", new { Gender = "Male", Age = 23 }), dummy.GetStuff);
+            cache.Get(new CacheKey("Name", new { Gender = "Male", Age = 23 }), dummy.GetStuff);
+
+            dummyMock.Verify(x => x.GetStuff(), Times.Once);
         }
     }
 }
