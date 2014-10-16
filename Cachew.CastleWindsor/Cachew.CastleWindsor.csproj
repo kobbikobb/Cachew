@@ -48,7 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CacheDecoratorBuilder.cs" />
-    <Compile Include="CachingInterceptor.cs" />
+    <Compile Include="CacheInterceptor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

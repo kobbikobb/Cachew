@@ -78,9 +78,9 @@ namespace Cachew.CastleWindsor.Tests
         public void ResolveServiceWithInterceptor()
         {
             var container = new WindsorContainer();
-            container.Register(Component.For<CachingInterceptor>()
-                .Instance(new CachingInterceptor(new Cache(TimeoutStyle.RenewTimoutOnQuery, TimeSpan.FromSeconds(3)))));
-            container.Register(Component.For<IRepo>().ImplementedBy<Repo>().Interceptors<CachingInterceptor>());
+            container.Register(Component.For<CacheInterceptor>()
+                .Instance(new CacheInterceptor(new Cache(TimeoutStyle.RenewTimoutOnQuery, TimeSpan.FromSeconds(3)))));
+            container.Register(Component.For<IRepo>().ImplementedBy<Repo>().Interceptors<CacheInterceptor>());
             container.Register(Component.For<Service>());
 
             var result = container.Resolve<Service>();

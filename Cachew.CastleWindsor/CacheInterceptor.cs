@@ -4,12 +4,12 @@ using Castle.DynamicProxy;
 
 namespace Cachew.CastleWindsor
 {
-    public class CachingInterceptor : IInterceptor
+    public class CacheInterceptor : IInterceptor
     {
         private readonly ICache cache;
         private readonly string[] methodPrefixes;
 
-        public CachingInterceptor(ICache cache, params string[] methodPrefixes)
+        public CacheInterceptor(ICache cache, params string[] methodPrefixes)
         {
             if (cache == null) throw new ArgumentNullException("cache");
             if (methodPrefixes == null) throw new ArgumentNullException("methodPrefixes");
@@ -19,7 +19,7 @@ namespace Cachew.CastleWindsor
             this.methodPrefixes = methodPrefixes;
         }
 
-        public CachingInterceptor(ICache cache) : this(cache, "Get")
+        public CacheInterceptor(ICache cache) : this(cache, "Get")
         {
 
         }

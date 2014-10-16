@@ -47,7 +47,7 @@ namespace Cachew.CastleWindsor
         public T BuildFromInterface<T>(T t) where T : class
         {
             var cache = new Cache(timeoutStyle, timeout);
-            var interceptor = new CachingInterceptor(cache, methodPrefixes);
+            var interceptor = new CacheInterceptor(cache, methodPrefixes);
             return generator.CreateInterfaceProxyWithTarget(t, interceptor);
         }
     }

@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace Cachew.CastleWindsor.Tests
 {
     [TestFixture]
-    public class CachingInterceptorTests
+    public class CacheInterceptorTests
     {
         [Test]
         [TestCase("GetStuff")]
@@ -15,7 +15,7 @@ namespace Cachew.CastleWindsor.Tests
         {
             var cache = new Mock<ICache>();
             var innovation = new Mock<IInvocation>();
-            var interceptor = new CachingInterceptor(cache.Object, "Get", "get");
+            var interceptor = new CacheInterceptor(cache.Object, "Get", "get");
             innovation.SetupGet(x => x.Method.ReturnType).Returns(typeof(string));
             innovation.SetupGet(x => x.Method.Name).Returns(methodName);
 
@@ -33,7 +33,7 @@ namespace Cachew.CastleWindsor.Tests
         {
             var cache = new Mock<ICache>();
             var innovation = new Mock<IInvocation>();
-            var interceptor = new CachingInterceptor(cache.Object, "Get", "get");
+            var interceptor = new CacheInterceptor(cache.Object, "Get", "get");
             innovation.SetupGet(x => x.Method.ReturnType).Returns(typeof(string));
             innovation.SetupGet(x => x.Method.Name).Returns(methodName);
             innovation.SetupGet(x => x.Arguments).Returns(new object[] { "Argument1", "Argument2" });
@@ -49,7 +49,7 @@ namespace Cachew.CastleWindsor.Tests
         {
             var cache = new Mock<ICache>();
             var innovation = new Mock<IInvocation>();
-            var interceptor = new CachingInterceptor(cache.Object, "Get");
+            var interceptor = new CacheInterceptor(cache.Object, "Get");
             innovation.SetupGet(x => x.Method.ReturnType).Returns(typeof(string));
             innovation.SetupGet(x => x.Method.Name).Returns("getStuff");
 
@@ -64,7 +64,7 @@ namespace Cachew.CastleWindsor.Tests
         {
             var cache = new Mock<ICache>();
             var innovation = new Mock<IInvocation>();
-            var interceptor = new CachingInterceptor(cache.Object, "Get");
+            var interceptor = new CacheInterceptor(cache.Object, "Get");
             innovation.SetupGet(x => x.Method.ReturnType).Returns(typeof(void));
             innovation.SetupGet(x => x.Method.Name).Returns("GetStuff");
 
@@ -79,7 +79,7 @@ namespace Cachew.CastleWindsor.Tests
         {
             var cache = new Mock<ICache>();
             var innovation = new Mock<IInvocation>();
-            var interceptor = new CachingInterceptor(cache.Object);
+            var interceptor = new CacheInterceptor(cache.Object);
             innovation.SetupGet(x => x.Method.ReturnType).Returns(typeof(string));
             innovation.SetupGet(x => x.Method.Name).Returns("GetStuff");
 
@@ -93,7 +93,7 @@ namespace Cachew.CastleWindsor.Tests
         public void MethodPrefixesCanNotBeEmpty()
         {
             var cache = new Mock<ICache>();
-            var interceptor = new CachingInterceptor(cache.Object, new string[] { });
+            var interceptor = new CacheInterceptor(cache.Object, new string[] { });
         }
     }
 }
