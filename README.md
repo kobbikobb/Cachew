@@ -24,14 +24,14 @@ How to cache a method manually:
 ```c#
 var server = new Server();
 var cache = new Cache(TimeoutStyle.RenewTimoutOnQuery, TimeSpan.FromSeconds(3));
-var result = cache.Get(3, () => server.GetStuff(3));
+var result = cache.Get(new CacheKey("GetStuff", 3), () => server.GetStuff(3));
 ```
 
 How to add cache decorator with the help of a castle windsor interceptor:
 ```c#
 var container = new WindsorContainer();
-container.Register(Component.For<CachingInterceptor>()
-  .Instance(new CachingInterceptor(new Cache(TimeoutStyle.RenewTimoutOnQuery, TimeSpan.FromSeconds(3)))));
+container.Register(Component.For<CacheInterceptor>()
+  .Instance(new CacheInterceptor(new Cache(TimeoutStyle.RenewTimoutOnQuery, TimeSpan.FromSeconds(3)))));
 container.Register(Component.For<IServer>().ImplementedBy<Server>().Interceptors<CachingInterceptor>());
 
 var server = container.Resolve<Server>();
