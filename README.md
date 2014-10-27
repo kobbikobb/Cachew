@@ -32,7 +32,7 @@ How to add cache decorator with the help of a castle windsor interceptor:
 var container = new WindsorContainer();
 container.Register(Component.For<CacheInterceptor>()
   .Instance(new CacheInterceptor(new Cache(TimeoutStyle.RenewTimoutOnQuery, TimeSpan.FromSeconds(3)))));
-container.Register(Component.For<IServer>().ImplementedBy<Server>().Interceptors<CachingInterceptor>());
+container.Register(Component.For<IServer>().ImplementedBy<Server>().Interceptors<CacheInterceptor>());
 
 var server = container.Resolve<Server>();
 
