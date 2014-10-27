@@ -17,7 +17,7 @@ namespace Cachew
     {
         private readonly TimeoutStyle timeoutStyle;
         private readonly TimeSpan timeout;
-
+        private readonly Object lockObject = new object();
         private readonly LinkedList<CacheItem> timedList = new LinkedList<CacheItem>();
 
         public Cache(TimeoutStyle timeoutStyle, TimeSpan timeout)
@@ -29,28 +29,42 @@ namespace Cachew
         public object Get<T>(CacheKey key, Func<T> func)
         {
             RemoveExpiredItems();
-
-            var oldItem = timedList.SingleOrDefault(x => x.Key.Equals(key));
+       
+            var oldItem = GetCachedItem<T>(key);
             if (oldItem != null)
+                return GetItemValue<T>(oldItem);
+
+            lock (lockObject)
             {
-                if (timeoutStyle == TimeoutStyle.RenewTimoutOnQuery)
-                {
-                    RenewItem(oldItem);
-                }
-                return oldItem.Value;
+                oldItem = GetCachedItem<T>(key);
+                if (oldItem != null)
+                    return GetItemValue<T>(oldItem);
+
+                var newItem = new CacheItem(key, func());
+                timedList.AddLast(newItem);
+                return newItem.Value;
             }
-
-            var newItem = new CacheItem(key, func());
-            timedList.AddLast(newItem);
-            return newItem.Value;
-
         }
 
-        private void RenewItem(CacheItem valueObject)
+        private CacheItem GetCachedItem<T>(CacheKey key)
         {
-            timedList.Remove(valueObject);
-            timedList.AddLast(valueObject);
-            valueObject.LastQueried = GetTimeOfDay();
+            return timedList.SingleOrDefault(x => x.Key.Equals(key));
+        }
+
+        private object GetItemValue<T>(CacheItem item)
+        {
+            if (timeoutStyle == TimeoutStyle.RenewTimoutOnQuery)
+            {
+                RenewItem(item);
+            }
+            return item.Value;
+        }
+
+        private void RenewItem(CacheItem item)
+        {
+            timedList.Remove(item);
+            timedList.AddLast(item);
+            item.LastQueried = GetTimeOfDay();
         }
 
         private void RemoveExpiredItems()

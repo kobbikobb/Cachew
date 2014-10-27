@@ -4,11 +4,6 @@ using NUnit.Framework;
 
 namespace Cachew.Tests
 {
-    public interface IDummy
-    {
-        string GetStuff();
-    }
-
     [TestFixture]
     public class CacheTests
     {
