@@ -34,7 +34,7 @@ container.Register(Component.For<CacheInterceptor>()
   .Instance(new CacheInterceptor(new Cache(TimeoutStyle.RenewTimoutOnQuery, TimeSpan.FromSeconds(3)))));
 container.Register(Component.For<IServer>().ImplementedBy<Server>().Interceptors<CacheInterceptor>());
 
-var server = container.Resolve<Server>();
+var server = container.Resolve<IServer>();
 
 var result = server.GetStuff(3);
 ```
