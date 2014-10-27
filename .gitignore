@@ -221,3 +221,4 @@ UpgradeLog*.htm
 FakesAssemblies/
 /Vefþjónustur/Greidslumidlun/Greidslumidlun.Api/App_Data/XmlDocument.xml
 /Vefþjónustur/Greidslumidlun/Greidslumidlun.Api/XmlDocument.xml
+*.nupkg
