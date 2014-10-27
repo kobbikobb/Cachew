@@ -57,6 +57,7 @@
     <Compile Include="CacheDecoratorBuilderTests.cs" />
     <Compile Include="CacheInterceptorIntegrationTests.cs" />
     <Compile Include="CacheInterceptorTests.cs" />
+    <Compile Include="DuplicateSignatureIntegrationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

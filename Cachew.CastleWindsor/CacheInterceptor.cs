@@ -43,7 +43,8 @@ namespace Cachew.CastleWindsor
 
         private static CacheKey GetCacheKey(IInvocation invocation)
         {
-            return new CacheKey(invocation.Method.Name, invocation.Arguments);
+            var methodKey = invocation.TargetType.Name + "_" + invocation.Method.Name;
+            return new CacheKey(methodKey, invocation.Arguments);
         }
     }
 }
