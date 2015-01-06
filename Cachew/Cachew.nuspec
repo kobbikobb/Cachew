@@ -2,14 +2,14 @@
 <package >
   <metadata>
     <id>Cachew</id>
-    <version>2.0.0</version>
+    <version>2.2.0</version>
     <title>Cachew</title>
     <authors>Jakob Jónasson</authors>
     <owners>Jakob Jónasson</owners>
     <projectUrl>https://github.com/kobbikobb/Cachew</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Simple in memory caching library with an optional castle windsor interceptor and cache decorator builder</description>
-    <releaseNotes>Cache key introduced instead of object key and CachingInterceptor renamed CacheInterceptor</releaseNotes>
+    <releaseNotes>Thread safety and cache reuse for many classes supported</releaseNotes>
     <copyright>Copyright 2014</copyright>
     <tags>Cache CastleWindsor</tags>
   </metadata>
