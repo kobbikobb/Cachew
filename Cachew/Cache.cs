@@ -18,7 +18,7 @@ namespace Cachew
     {
         private readonly TimeoutStyle timeoutStyle;
         private readonly TimeSpan timeout;
-        private ReaderWriterLock readerWriterLock = new ReaderWriterLock();
+        private readonly ReaderWriterLock readerWriterLock = new ReaderWriterLock();
         private readonly LinkedList<CacheItem> timedList = new LinkedList<CacheItem>();
 
         public Cache(TimeoutStyle timeoutStyle, TimeSpan timeout)
