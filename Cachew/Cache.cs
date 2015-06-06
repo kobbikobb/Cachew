@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Cachew
 {
@@ -17,7 +18,7 @@ namespace Cachew
     {
         private readonly TimeoutStyle timeoutStyle;
         private readonly TimeSpan timeout;
-        private readonly Object lockObject = new object();
+        private ReaderWriterLock readerWriterLock = new ReaderWriterLock();
         private readonly LinkedList<CacheItem> timedList = new LinkedList<CacheItem>();
 
         public Cache(TimeoutStyle timeoutStyle, TimeSpan timeout)
@@ -29,13 +30,16 @@ namespace Cachew
         public object Get<T>(CacheKey key, Func<T> func)
         {
             RemoveExpiredItems();
-       
-            var oldItem = GetCachedItem<T>(key);
-            if (oldItem != null)
-                return GetItemValue<T>(oldItem);
 
-            lock (lockObject)
+            readerWriterLock.AcquireReaderLock(Timeout.Infinite);
+            try
             {
+                var oldItem = GetCachedItem<T>(key);
+                if (oldItem != null)
+                    return GetItemValue<T>(oldItem);
+
+                readerWriterLock.UpgradeToWriterLock(Timeout.Infinite);
+
                 oldItem = GetCachedItem<T>(key);
                 if (oldItem != null)
                     return GetItemValue<T>(oldItem);
@@ -44,6 +48,11 @@ namespace Cachew
                 timedList.AddLast(newItem);
                 return newItem.Value;
             }
+            finally
+            {
+                readerWriterLock.ReleaseLock();
+            }
+
         }
 
         private CacheItem GetCachedItem<T>(CacheKey key)
@@ -71,10 +80,18 @@ namespace Cachew
         {
             while (timedList.Count != 0)
             {
-                var oldest = timedList.First.Value;
-                if (oldest.LastQueried.Add(timeout) <= GetTimeOfDay())
+                var oldest = timedList.First;
+                if (oldest.Value.LastQueried.Add(timeout) <= GetTimeOfDay())
                 {
-                    timedList.RemoveFirst();
+                    readerWriterLock.AcquireWriterLock(Timeout.Infinite);
+                    try
+                    {
+                        timedList.Remove(oldest);
+                    }
+                    finally
+                    {
+                        readerWriterLock.ReleaseWriterLock();
+                    }
                 }
                 else
                 {
