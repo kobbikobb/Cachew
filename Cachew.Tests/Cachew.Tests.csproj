@@ -49,6 +49,7 @@
     <Compile Include="CacheConcurencyTests.cs" />
     <Compile Include="CacheKeyTests.cs" />
     <Compile Include="CacheTests.cs" />
+    <Compile Include="CacheThreadingTests.cs" />
     <Compile Include="IDummy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
