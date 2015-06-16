@@ -2,11 +2,11 @@
 
 namespace Cachew
 {
-    public class Timer : ITimer
+    public class SystemTimer : ITimer
     {
         private readonly System.Timers.Timer timer;
 
-        public Timer(double interval)
+        public SystemTimer(double interval)
         {
             timer = new System.Timers.Timer(interval);
             timer.Elapsed += OnTimerElapsed;

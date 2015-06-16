@@ -52,8 +52,7 @@ namespace Cachew.Tests
         {
             //Arrange
             var fixedClock = new FixedClock(new TimeSpan(0));
-            Clock.Instance = fixedClock;
-            var sut = new InternalCache(style, new TimeSpan(timeoutTicks));
+            var sut = new InternalCache(style, new TimeSpan(timeoutTicks), fixedClock);
 
             var key = CreateAnyCacheKey();
             var existingValue = fixture.Create<string>();
@@ -78,8 +77,7 @@ namespace Cachew.Tests
         {
             //Arrange
             var fixedClock = new FixedClock(new TimeSpan(0));
-            Clock.Instance = fixedClock;
-            var sut = new InternalCache(style, new TimeSpan(timeoutTicks));
+            var sut = new InternalCache(style, new TimeSpan(timeoutTicks), fixedClock);
 
             var key = CreateAnyCacheKey();
             var existingValue = fixture.Create<string>();
@@ -103,8 +101,7 @@ namespace Cachew.Tests
         {
             //Arrange
             var fixedClock = new FixedClock(new TimeSpan(0));
-            Clock.Instance = fixedClock;
-            var sut = new InternalCache(TimeoutStyle.RenewTimoutOnQuery, new TimeSpan(timeoutTicks));
+            var sut = new InternalCache(TimeoutStyle.RenewTimoutOnQuery, new TimeSpan(timeoutTicks), fixedClock);
 
             var key = CreateAnyCacheKey();
             var existingValue = fixture.Create<string>();
@@ -132,8 +129,7 @@ namespace Cachew.Tests
         {
             //Arrange
             var fixedClock = new FixedClock(new TimeSpan(0));
-            Clock.Instance = fixedClock;
-            var sut = new InternalCache(TimeoutStyle.FixedTimeout, new TimeSpan(timeoutTicks));
+            var sut = new InternalCache(TimeoutStyle.FixedTimeout, new TimeSpan(timeoutTicks), fixedClock);
 
             var key = CreateAnyCacheKey();
             var existingValue = fixture.Create<string>();

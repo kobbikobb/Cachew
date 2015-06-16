@@ -20,7 +20,7 @@ namespace Cachew
         private readonly LockManager lockManager = new LockManager();
         
         public Cache(TimeoutStyle timeoutStyle, TimeSpan timeout) : 
-            this(new InternalCache(timeoutStyle, timeout), new Timer(5000))
+            this(new InternalCache(timeoutStyle, timeout), new SystemTimer(5000))
         {
           
         }

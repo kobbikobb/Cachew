@@ -8,13 +8,20 @@ namespace Cachew
     {
         private readonly TimeoutStyle timeoutStyle;
         private readonly TimeSpan timeout;
+        private readonly IClock clock;
 
         private readonly LinkedList<CacheItem> timedList = new LinkedList<CacheItem>();
 
-        public InternalCache(TimeoutStyle timeoutStyle, TimeSpan timeout)
+        public InternalCache(TimeoutStyle timeoutStyle, TimeSpan timeout) : this(timeoutStyle, timeout, new SystemClock())
+        {
+           
+        }
+
+        internal InternalCache(TimeoutStyle timeoutStyle, TimeSpan timeout, IClock clock)
         {
             this.timeoutStyle = timeoutStyle;
             this.timeout = timeout;
+            this.clock = clock;
         }
 
         public bool TryGetValue(CacheKey key, out object value)
@@ -31,7 +38,12 @@ namespace Cachew
         
         public void Add(CacheKey key, object value)
         {
-            var item = new CacheItem(key, value);
+            var item = new CacheItem()
+            {
+                Key = key,
+                Value = value,
+                LastQueried = clock.GetTimeOfDay()
+            };
             timedList.AddLast(item);
         }
         
@@ -74,21 +86,14 @@ namespace Cachew
 
         private class CacheItem
         {
-            public CacheKey Key { get; private set; }
-            public object Value { get; private set; }
+            public CacheKey Key { get; set; }
+            public object Value { get; set; }
             public TimeSpan LastQueried { get; set; }
-
-            public CacheItem(CacheKey key, object value)
-            {
-                Key = key;
-                Value = value;
-                LastQueried = Clock.GetTimeOfDay();
-            }
         }
 
-        private static TimeSpan GetTimeOfDay()
+        private TimeSpan GetTimeOfDay()
         {
-            return Clock.GetTimeOfDay();
+            return clock.GetTimeOfDay();
         }
     }
 }

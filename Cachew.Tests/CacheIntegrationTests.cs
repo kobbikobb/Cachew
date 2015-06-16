@@ -11,7 +11,7 @@ namespace Cachew.Tests
         private Mock<IDummy> dummyMock;
         private IDummy dummy;
         private CacheKey key;
-        private FixedClock clock;
+        private FixedClock fixedClock;
 
         [SetUp]
         public void SetUp()
@@ -20,10 +20,9 @@ namespace Cachew.Tests
             dummyMock = new Mock<IDummy>();
             dummy = dummyMock.Object;
             key = new CacheKey("MethodName");
-            clock = new FixedClock(new TimeSpan(0));
+            fixedClock = new FixedClock(new TimeSpan(0));
 
             dummyMock.Setup(x => x.GetStuff()).Returns(expected);
-            Clock.Instance = clock;
         }
 
         [Test]
@@ -36,13 +35,13 @@ namespace Cachew.Tests
         public void GetShouldRenewStyleRenewTimoutOnQuery(TimeoutStyle style, int interval1, int interval2, int expectedCount)
         {
             var timer = new FixedTimer();
-            var cache = new Cache(new InternalCache(style, new TimeSpan(5)), timer);
+            var cache = new Cache(new InternalCache(style, new TimeSpan(5), fixedClock), timer);
 
             var actual1 = cache.Get(key, dummy.GetStuff);
-            clock.Add(new TimeSpan(interval1));
+            fixedClock.Add(new TimeSpan(interval1));
             timer.InvokeElapsed();
             var actual2 = cache.Get(key, dummy.GetStuff);
-            clock.Add(new TimeSpan(interval2));
+            fixedClock.Add(new TimeSpan(interval2));
             timer.InvokeElapsed();
             var actual3 = cache.Get(key, dummy.GetStuff);
 
@@ -58,20 +57,20 @@ namespace Cachew.Tests
         public void GetShouldExpireSomeItems(TimeoutStyle style)
         {
             var timer = new FixedTimer();
-            var cache = new Cache(new InternalCache(style, new TimeSpan(5)), timer);
+            var cache = new Cache(new InternalCache(style, new TimeSpan(5), fixedClock), timer);
 
             cache.Get(new CacheKey("1"), dummy.GetStuff);
             cache.Get(new CacheKey("2"), dummy.GetStuff);
             cache.Get(new CacheKey("3"), dummy.GetStuff);
 
-            clock.Add(new TimeSpan(3));
+            fixedClock.Add(new TimeSpan(3));
             timer.InvokeElapsed();
 
             cache.Get(new CacheKey("4"), dummy.GetStuff);
             cache.Get(new CacheKey("5"), dummy.GetStuff);
             cache.Get(new CacheKey("6"), dummy.GetStuff);
 
-            clock.Add(new TimeSpan(3));
+            fixedClock.Add(new TimeSpan(3));
             timer.InvokeElapsed();
 
             cache.Get(new CacheKey("1"), dummy.GetStuff);
@@ -88,7 +87,7 @@ namespace Cachew.Tests
         public void GetShouldExpireSomeItemsAndRenewOthers()
         {
             var timer = new FixedTimer();
-            var cache = new Cache(new InternalCache(TimeoutStyle.RenewTimoutOnQuery, new TimeSpan(5)), timer);
+            var cache = new Cache(new InternalCache(TimeoutStyle.RenewTimoutOnQuery, new TimeSpan(5), fixedClock), timer);
 
             cache.Get(new CacheKey("1"), dummy.GetStuff);
             cache.Get(new CacheKey("2"), dummy.GetStuff);
@@ -97,14 +96,14 @@ namespace Cachew.Tests
             cache.Get(new CacheKey("5"), dummy.GetStuff);
             cache.Get(new CacheKey("6"), dummy.GetStuff);
 
-            clock.Add(new TimeSpan(3));
+            fixedClock.Add(new TimeSpan(3));
             timer.InvokeElapsed();
 
             cache.Get(new CacheKey("2"), dummy.GetStuff);
             cache.Get(new CacheKey("3"), dummy.GetStuff);
             cache.Get(new CacheKey("5"), dummy.GetStuff);
 
-            clock.Add(new TimeSpan(3));
+            fixedClock.Add(new TimeSpan(3));
             timer.InvokeElapsed();
 
             cache.Get(new CacheKey("1"), dummy.GetStuff);

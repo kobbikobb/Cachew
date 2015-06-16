@@ -2,7 +2,7 @@
 
 namespace Cachew.Tests
 {
-    internal class FixedClock : Clock
+    internal class FixedClock : IClock
     {
         private TimeSpan fixedTimeOfDay;
 
@@ -11,12 +11,12 @@ namespace Cachew.Tests
             this.fixedTimeOfDay = fixedTimeOfDay;
         }
 
-        protected override TimeSpan TimeOfDay
+        public TimeSpan GetTimeOfDay()
         {
-            get { return fixedTimeOfDay; }
+             return fixedTimeOfDay; 
         }
 
-        public void Add(TimeSpan timeSpan)
+        internal void Add(TimeSpan timeSpan)
         {
             fixedTimeOfDay = fixedTimeOfDay.Add(timeSpan);
         }
