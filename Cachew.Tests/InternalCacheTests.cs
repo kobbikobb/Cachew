@@ -51,7 +51,7 @@ namespace Cachew.Tests
         public void RemoveExpiredItems_ShouldRemoveExpiredItems(TimeoutStyle style, int timeoutTicks, int elapsedTicks)
         {
             //Arrange
-            var fixedClock = new FixedClock(new TimeSpan(0));
+            var fixedClock = new FixedClock(DateTime.Today);
             var sut = new InternalCache(style, new TimeSpan(timeoutTicks), fixedClock);
 
             var key = CreateAnyCacheKey();
@@ -76,7 +76,7 @@ namespace Cachew.Tests
         public void RemoveExpiredItems_ShouldNotRemoveItemsThatAreNotExpired(TimeoutStyle style, int timeoutTicks, int elapsedTicks)
         {
             //Arrange
-            var fixedClock = new FixedClock(new TimeSpan(0));
+            var fixedClock = new FixedClock(DateTime.Today);
             var sut = new InternalCache(style, new TimeSpan(timeoutTicks), fixedClock);
 
             var key = CreateAnyCacheKey();
@@ -100,7 +100,7 @@ namespace Cachew.Tests
         public void RemoveExpiredItems_ShouldRenewItemsWithRenewTimoutOnQuery(int timeoutTicks, int elapsedTicks1, int elapsedTicks2)
         {
             //Arrange
-            var fixedClock = new FixedClock(new TimeSpan(0));
+            var fixedClock = new FixedClock(DateTime.Today);
             var sut = new InternalCache(TimeoutStyle.RenewTimoutOnQuery, new TimeSpan(timeoutTicks), fixedClock);
 
             var key = CreateAnyCacheKey();
@@ -128,7 +128,7 @@ namespace Cachew.Tests
         public void RemoveExpiredItems_ShouldNotRenewItemsWithFixteTimeout(int timeoutTicks, int elapsedTicks1, int elapsedTicks2)
         {
             //Arrange
-            var fixedClock = new FixedClock(new TimeSpan(0));
+            var fixedClock = new FixedClock(DateTime.Today);
             var sut = new InternalCache(TimeoutStyle.FixedTimeout, new TimeSpan(timeoutTicks), fixedClock);
 
             var key = CreateAnyCacheKey();
@@ -147,6 +147,29 @@ namespace Cachew.Tests
             object value2;
             var result = sut.TryGetValue(key, out value2);
             Assert.IsFalse(result, "Cache should find value");
+        }
+
+        [Test]
+        public void RemoveExpiredItems_ShouldRemoveItemsDueToNewDay()
+        {
+            //Arrange
+            var dateNearMidnight = DateTime.Today.AddDays(1).Subtract(TimeSpan.FromSeconds(1));
+            var fixedClock = new FixedClock(dateNearMidnight);
+            var sut = new InternalCache(TimeoutStyle.FixedTimeout, TimeSpan.FromSeconds(30), fixedClock);
+
+            var key = CreateAnyCacheKey();
+            var existingValue = fixture.Create<string>();
+            sut.Add(key, existingValue);
+            var datePastMidnight = DateTime.Today.AddDays(1).Add(TimeSpan.FromHours(3));
+            fixedClock.SetNow(datePastMidnight);
+
+            //Act
+            sut.RemoveExpiredItems();
+
+            //Assert
+            object value2;
+            var result = sut.TryGetValue(key, out value2);
+            Assert.IsFalse(result, "Cache should not find value");
         }
 
         private InternalCache CreateAnyInternalCache()

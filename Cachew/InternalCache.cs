@@ -42,7 +42,7 @@ namespace Cachew
             {
                 Key = key,
                 Value = value,
-                LastQueried = clock.GetTimeOfDay()
+                LastQueried = clock.GetNow()
             };
             timedList.AddLast(item);
         }
@@ -65,7 +65,7 @@ namespace Cachew
         {
             timedList.Remove(item);
             timedList.AddLast(item);
-            item.LastQueried = GetTimeOfDay();
+            item.LastQueried = clock.GetNow();
         }
 
         public void RemoveExpiredItems()
@@ -73,7 +73,7 @@ namespace Cachew
             while (timedList.Count != 0)
             {
                 var oldest = timedList.First;
-                if (oldest.Value.LastQueried.Add(timeout) < GetTimeOfDay())
+                if (oldest.Value.LastQueried.Add(timeout) < clock.GetNow())
                 {
                     timedList.Remove(oldest);
                 }
@@ -88,12 +88,7 @@ namespace Cachew
         {
             public CacheKey Key { get; set; }
             public object Value { get; set; }
-            public TimeSpan LastQueried { get; set; }
-        }
-
-        private TimeSpan GetTimeOfDay()
-        {
-            return clock.GetTimeOfDay();
+            public DateTime LastQueried { get; set; }
         }
     }
 }

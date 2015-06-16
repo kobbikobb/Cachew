@@ -4,21 +4,26 @@ namespace Cachew.Tests
 {
     internal class FixedClock : IClock
     {
-        private TimeSpan fixedTimeOfDay;
+        private DateTime fixedTimeOfDay;
 
-        public FixedClock(TimeSpan fixedTimeOfDay)
+        public FixedClock(DateTime value)
         {
-            this.fixedTimeOfDay = fixedTimeOfDay;
+            this.fixedTimeOfDay = value;
         }
 
-        public TimeSpan GetTimeOfDay()
+        public DateTime GetNow()
         {
              return fixedTimeOfDay; 
         }
 
-        internal void Add(TimeSpan timeSpan)
+        internal void Add(TimeSpan value)
         {
-            fixedTimeOfDay = fixedTimeOfDay.Add(timeSpan);
+            fixedTimeOfDay = fixedTimeOfDay.Add(value);
+        }
+
+        internal void SetNow(DateTime value)
+        {
+            fixedTimeOfDay = value;
         }
     }
 }

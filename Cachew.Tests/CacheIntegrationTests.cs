@@ -20,7 +20,7 @@ namespace Cachew.Tests
             dummyMock = new Mock<IDummy>();
             dummy = dummyMock.Object;
             key = new CacheKey("MethodName");
-            fixedClock = new FixedClock(new TimeSpan(0));
+            fixedClock = new FixedClock(DateTime.Today);
 
             dummyMock.Setup(x => x.GetStuff()).Returns(expected);
         }

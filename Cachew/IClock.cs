@@ -4,6 +4,6 @@ namespace Cachew
 {
     internal interface IClock
     {
-        TimeSpan GetTimeOfDay();
+        DateTime GetNow();
     }
 }

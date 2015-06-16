@@ -4,9 +4,9 @@ namespace Cachew
 {
     internal class SystemClock : IClock
     {
-        public TimeSpan GetTimeOfDay()
+        public DateTime GetNow()
         {
-            return DateTime.Now.TimeOfDay;
+            return DateTime.Now;
         }
     }
 }
