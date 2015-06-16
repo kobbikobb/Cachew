@@ -37,10 +37,12 @@ namespace Cachew.Tests
         [TestCase(TimeoutStyle.RenewTimoutOnQuery, 6, 2)]
         public void IsCacheUsed(TimeoutStyle style, int interval, int expectedCount)
         {
-            var cache = new Cache(style, new TimeSpan(5));
+            var timer = new FixedTimer();
+            var cache = new Cache(style, new TimeSpan(5), timer);
 
             var actual1 = cache.Get(key, dummy.GetStuff);
             clock.Add(new TimeSpan(interval));
+            timer.InvokeElapsed();
             var actual2 = cache.Get(key, dummy.GetStuff);
 
             Assert.AreEqual(expected, actual1);
@@ -57,12 +59,15 @@ namespace Cachew.Tests
         [TestCase(TimeoutStyle.FixedTimeout, 4, 6, 2)]
         public void IsCacheRenewed(TimeoutStyle style, int interval1, int interval2, int expectedCount)
         {
-            var cache = new Cache(style, new TimeSpan(5));
+            var timer = new FixedTimer();
+            var cache = new Cache(style, new TimeSpan(5), timer);
 
             var actual1 = cache.Get(key, dummy.GetStuff);
             clock.Add(new TimeSpan(interval1));
+            timer.InvokeElapsed();
             var actual2 = cache.Get(key, dummy.GetStuff);
             clock.Add(new TimeSpan(interval2));
+            timer.InvokeElapsed();
             var actual3 = cache.Get(key, dummy.GetStuff);
 
             Assert.AreEqual(expected, actual1);
@@ -76,19 +81,22 @@ namespace Cachew.Tests
         [TestCase(TimeoutStyle.RenewTimoutOnQuery)]
         public void SomeItemsExpired(TimeoutStyle style)
         {
-            var cache = new Cache(style, new TimeSpan(5));
+            var timer = new FixedTimer();
+            var cache = new Cache(style, new TimeSpan(5), timer);
 
             cache.Get(new CacheKey("1"), dummy.GetStuff);
             cache.Get(new CacheKey("2"), dummy.GetStuff);
             cache.Get(new CacheKey("3"), dummy.GetStuff);
 
             clock.Add(new TimeSpan(3));
+            timer.InvokeElapsed();
 
             cache.Get(new CacheKey("4"), dummy.GetStuff);
             cache.Get(new CacheKey("5"), dummy.GetStuff);
             cache.Get(new CacheKey("6"), dummy.GetStuff);
 
             clock.Add(new TimeSpan(2));
+            timer.InvokeElapsed();
 
             cache.Get(new CacheKey("1"), dummy.GetStuff);
             cache.Get(new CacheKey("2"), dummy.GetStuff);
@@ -103,7 +111,8 @@ namespace Cachew.Tests
         [Test]
         public void SomeItemsExpiredSomeRenewed()
         {
-            var cache = new Cache(TimeoutStyle.RenewTimoutOnQuery, new TimeSpan(5));
+            var timer = new FixedTimer();
+            var cache = new Cache(TimeoutStyle.RenewTimoutOnQuery, new TimeSpan(5), timer);
 
             cache.Get(new CacheKey("1"), dummy.GetStuff);
             cache.Get(new CacheKey("2"), dummy.GetStuff);
@@ -113,12 +122,14 @@ namespace Cachew.Tests
             cache.Get(new CacheKey("6"), dummy.GetStuff);
 
             clock.Add(new TimeSpan(3));
+            timer.InvokeElapsed();
 
             cache.Get(new CacheKey("2"), dummy.GetStuff);
             cache.Get(new CacheKey("3"), dummy.GetStuff);
             cache.Get(new CacheKey("5"), dummy.GetStuff);
 
             clock.Add(new TimeSpan(2));
+            timer.InvokeElapsed();
 
             cache.Get(new CacheKey("1"), dummy.GetStuff);
             cache.Get(new CacheKey("2"), dummy.GetStuff);

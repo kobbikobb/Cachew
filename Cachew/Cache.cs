@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 
 namespace Cachew
@@ -16,27 +14,43 @@ namespace Cachew
     /// </summary>
     public class Cache : ICache
     {
-        private readonly TimeoutStyle timeoutStyle;
-        private readonly TimeSpan timeout;
-        private readonly ReaderWriterLockSlim readerWriterLockSlim = new ReaderWriterLockSlim();
-        private readonly LinkedList<CacheItem> timedList = new LinkedList<CacheItem>();
+        private readonly ITimer expirationTimer;
+        private readonly IInternalCache internalCache;
 
-        public Cache(TimeoutStyle timeoutStyle, TimeSpan timeout)
+        private readonly ReaderWriterLockSlim readerWriterLockSlim = new ReaderWriterLockSlim();
+        
+        public Cache(TimeoutStyle timeoutStyle, TimeSpan timeout) : 
+            this(new InternalCache(timeoutStyle, timeout), new Timer(5000))
         {
-            this.timeoutStyle = timeoutStyle;
-            this.timeout = timeout;
+          
+        }
+
+        internal Cache(IInternalCache iternalCache, ITimer expirationTimer)
+        {
+            this.expirationTimer = expirationTimer;
+            this.internalCache = iternalCache;
+
+            this.expirationTimer.Elapsed += ExpirationTimerElapsed;
+            this.expirationTimer.Start();
+        }
+
+        internal Cache(TimeoutStyle timeoutStyle, TimeSpan timeout, ITimer expirationTimer)
+        {
+            this.expirationTimer = expirationTimer;
+            this.internalCache = new InternalCache(timeoutStyle, timeout);
+
+            this.expirationTimer.Elapsed += ExpirationTimerElapsed;
+            this.expirationTimer.Start();
         }
 
         public object Get<T>(CacheKey key, Func<T> func)
         {
-            RemoveExpiredItems();
-
             readerWriterLockSlim.EnterReadLock();
             try
             {
-                var oldItem = GetCachedItem<T>(key);
-                if (oldItem != null)
-                    return GetItemValue<T>(oldItem);
+                object existingValue;
+                if (internalCache.TryGetValue(key, out existingValue))
+                    return existingValue;
             }
             finally
             {
@@ -46,83 +60,31 @@ namespace Cachew
             readerWriterLockSlim.EnterWriteLock();
             try
             {
-                var oldItem = GetCachedItem<T>(key);
-                if (oldItem != null)
-                    return GetItemValue<T>(oldItem);
+                object existingValue;
+                if (internalCache.TryGetValue(key, out existingValue))
+                    return existingValue;
 
-                var newItem = new CacheItem(key, func());
-                timedList.AddLast(newItem);
-                return newItem.Value;
+                var newValue = func();
+                internalCache.Add(key, newValue);
+                return newValue;
             }
             finally
             {
                 readerWriterLockSlim.ExitWriteLock();
             }
-
         }
 
-        private CacheItem GetCachedItem<T>(CacheKey key)
-        {
-            return timedList.SingleOrDefault(x => x.Key.Equals(key));
-        }
-
-        private object GetItemValue<T>(CacheItem item)
-        {
-            if (timeoutStyle == TimeoutStyle.RenewTimoutOnQuery)
-            {
-                RenewItem(item);
-            }
-            return item.Value;
-        }
-
-        private void RenewItem(CacheItem item)
-        {
-            timedList.Remove(item);
-            timedList.AddLast(item);
-            item.LastQueried = GetTimeOfDay();
-        }
-
-        private void RemoveExpiredItems()
+        private void ExpirationTimerElapsed(object sender, EventArgs e)
         {
             readerWriterLockSlim.EnterWriteLock();
             try
             {
-                while (timedList.Count != 0)
-                {
-                    var oldest = timedList.First;
-                    if (oldest.Value.LastQueried.Add(timeout) <= GetTimeOfDay())
-                    {
-                        timedList.Remove(oldest);
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
+                internalCache.RemoveExpiredItems();
             }
             finally
             {
                 readerWriterLockSlim.ExitWriteLock();
             }
-        }
-
-        private class CacheItem
-        {
-            public CacheKey Key { get; private set; }
-            public object Value { get; private set; }
-            public TimeSpan LastQueried { get; set; }
-
-            public CacheItem(CacheKey key, object value)
-            {
-                Key = key;
-                Value = value;
-                LastQueried = GetTimeOfDay();
-            }
-        }
-
-        private static TimeSpan GetTimeOfDay()
-        {
-            return Clock.GetTimeOfDay();
         }
     }
 }
