@@ -42,15 +42,16 @@
     <Compile Include="Cache.cs" />
     <Compile Include="CacheKey.cs" />
     <Compile Include="Clock.cs" />
-    <Compile Include="FixedClock.cs" />
-    <Compile Include="FixedTimer.cs" />
     <Compile Include="ICache.cs" />
     <Compile Include="IInternalCache.cs" />
     <Compile Include="InternalCache.cs" />
     <Compile Include="ITimer.cs" />
     <Compile Include="LocalClock.cs" />
+    <Compile Include="LockManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReadLock.cs" />
     <Compile Include="Timer.cs" />
+    <Compile Include="WriteLock.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

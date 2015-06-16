@@ -17,7 +17,7 @@ namespace Cachew
         private readonly ITimer expirationTimer;
         private readonly IInternalCache internalCache;
 
-        private readonly ReaderWriterLockSlim readerWriterLockSlim = new ReaderWriterLockSlim();
+        private readonly LockManager lockManager = new LockManager();
         
         public Cache(TimeoutStyle timeoutStyle, TimeSpan timeout) : 
             this(new InternalCache(timeoutStyle, timeout), new Timer(5000))
@@ -27,17 +27,10 @@ namespace Cachew
 
         internal Cache(IInternalCache iternalCache, ITimer expirationTimer)
         {
-            this.expirationTimer = expirationTimer;
+            if (iternalCache == null) throw new ArgumentNullException("iternalCache");
+            if (expirationTimer == null) throw new ArgumentNullException("expirationTimer");
             this.internalCache = iternalCache;
-
-            this.expirationTimer.Elapsed += ExpirationTimerElapsed;
-            this.expirationTimer.Start();
-        }
-
-        internal Cache(TimeoutStyle timeoutStyle, TimeSpan timeout, ITimer expirationTimer)
-        {
             this.expirationTimer = expirationTimer;
-            this.internalCache = new InternalCache(timeoutStyle, timeout);
 
             this.expirationTimer.Elapsed += ExpirationTimerElapsed;
             this.expirationTimer.Start();
@@ -45,20 +38,14 @@ namespace Cachew
 
         public object Get<T>(CacheKey key, Func<T> func)
         {
-            readerWriterLockSlim.EnterReadLock();
-            try
+            using (lockManager.EnterRead())
             {
                 object existingValue;
                 if (internalCache.TryGetValue(key, out existingValue))
                     return existingValue;
             }
-            finally
-            {
-                readerWriterLockSlim.ExitReadLock();
-            }
 
-            readerWriterLockSlim.EnterWriteLock();
-            try
+            using (lockManager.EnterWrite())
             {
                 object existingValue;
                 if (internalCache.TryGetValue(key, out existingValue))
@@ -68,22 +55,13 @@ namespace Cachew
                 internalCache.Add(key, newValue);
                 return newValue;
             }
-            finally
-            {
-                readerWriterLockSlim.ExitWriteLock();
-            }
         }
 
         private void ExpirationTimerElapsed(object sender, EventArgs e)
         {
-            readerWriterLockSlim.EnterWriteLock();
-            try
+            using (lockManager.EnterWrite())
             {
-                internalCache.RemoveExpiredItems();
-            }
-            finally
-            {
-                readerWriterLockSlim.ExitWriteLock();
+                internalCache.RemoveExpiredItems();                
             }
         }
     }

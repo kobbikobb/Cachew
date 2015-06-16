@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Cachew
+namespace Cachew.Tests
 {
     internal class FixedTimer : ITimer
     {

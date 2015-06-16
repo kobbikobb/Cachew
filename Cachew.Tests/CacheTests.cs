@@ -1,166 +1,85 @@
 ﻿using System;
 using Moq;
 using NUnit.Framework;
+using Ploeh.AutoFixture;
 
 namespace Cachew.Tests
 {
     [TestFixture]
     public class CacheTests
     {
-        private string expected;
-        private Mock<IDummy> dummyMock;
-        private IDummy dummy;
-        private CacheKey key;
-        private FixedClock clock;
+        private Fixture fixture;
         
         [SetUp]
         public void SetUp()
         {
-            expected = "return string";
-            dummyMock = new Mock<IDummy>();
-            dummy = dummyMock.Object;
-            key = new CacheKey("MethodName");
-            clock = new FixedClock(new TimeSpan(0));
+            fixture = new Fixture();
+        }
 
+        [Test]
+        public void GetShouldReturnValueFromFunction()
+        {
+            //Arrange
+            var key = CreateAnyCacheKey();
+            var cache = CreateAnyCache();
+            var expected = fixture.Create<string>();
+
+            var dummyMock = new Mock<IDummy>();
+            var dummy = dummyMock.Object;
             dummyMock.Setup(x => x.GetStuff()).Returns(expected);
-            Clock.Instance = clock;
+
+            //Act
+            var result = cache.Get(key, dummy.GetStuff);
+
+            //Assert
+            Assert.AreEqual(expected, result);
         }
 
         [Test]
-        [TestCase(TimeoutStyle.FixedTimeout, 2, 1)]
-        [TestCase(TimeoutStyle.FixedTimeout, 4, 1)]
-        [TestCase(TimeoutStyle.FixedTimeout, 5, 2)]
-        [TestCase(TimeoutStyle.FixedTimeout, 6, 2)]
-        [TestCase(TimeoutStyle.RenewTimoutOnQuery, 2, 1)]
-        [TestCase(TimeoutStyle.RenewTimoutOnQuery, 4, 1)]
-        [TestCase(TimeoutStyle.RenewTimoutOnQuery, 5, 2)]
-        [TestCase(TimeoutStyle.RenewTimoutOnQuery, 6, 2)]
-        public void IsCacheUsed(TimeoutStyle style, int interval, int expectedCount)
+        public void GetShouldUseCacheForSecondQuery()
         {
+            //Arrange
+            var key = CreateAnyCacheKey();            
+            var cache = CreateAnyCache();
+            var expected = fixture.Create<string>();
+
+            var dummyMock = new Mock<IDummy>();
+            var dummy = dummyMock.Object;
+            dummyMock.Setup(x => x.GetStuff()).Returns(expected);
+
+            //Act
+            var result1 = cache.Get(key, dummy.GetStuff);
+            var result2 = cache.Get(key, dummy.GetStuff);
+
+            //Assert
+            Assert.AreEqual(expected, result1);
+            Assert.AreEqual(expected, result2);
+            dummyMock.Verify(x => x.GetStuff(), Times.Exactly(1));
+        }
+
+        [Test]
+        public void CacheShouldExpireItems()
+        {
+            //Arrange
+            var internalCache = new Mock<IInternalCache>();
             var timer = new FixedTimer();
-            var cache = new Cache(style, new TimeSpan(5), timer);
+            var sut = new Cache(internalCache.Object, timer);
 
-            var actual1 = cache.Get(key, dummy.GetStuff);
-            clock.Add(new TimeSpan(interval));
+            //Act
             timer.InvokeElapsed();
-            var actual2 = cache.Get(key, dummy.GetStuff);
-
-            Assert.AreEqual(expected, actual1);
-            Assert.AreEqual(expected, actual2);
-            dummyMock.Verify(x => x.GetStuff(), Times.Exactly(expectedCount));
+            
+            //Assert
+            internalCache.Verify(x => x.RemoveExpiredItems());
         }
 
-        [Test]
-        [TestCase(TimeoutStyle.RenewTimoutOnQuery, 4, 4, 1)]
-        [TestCase(TimeoutStyle.RenewTimoutOnQuery, 4, 5, 2)]
-        [TestCase(TimeoutStyle.RenewTimoutOnQuery, 4, 6, 2)]
-        [TestCase(TimeoutStyle.FixedTimeout, 4, 4, 2)]
-        [TestCase(TimeoutStyle.FixedTimeout, 4, 5, 2)]
-        [TestCase(TimeoutStyle.FixedTimeout, 4, 6, 2)]
-        public void IsCacheRenewed(TimeoutStyle style, int interval1, int interval2, int expectedCount)
+        private Cache CreateAnyCache()
         {
-            var timer = new FixedTimer();
-            var cache = new Cache(style, new TimeSpan(5), timer);
-
-            var actual1 = cache.Get(key, dummy.GetStuff);
-            clock.Add(new TimeSpan(interval1));
-            timer.InvokeElapsed();
-            var actual2 = cache.Get(key, dummy.GetStuff);
-            clock.Add(new TimeSpan(interval2));
-            timer.InvokeElapsed();
-            var actual3 = cache.Get(key, dummy.GetStuff);
-
-            Assert.AreEqual(expected, actual1);
-            Assert.AreEqual(expected, actual2);
-            Assert.AreEqual(expected, actual3);
-            dummyMock.Verify(x => x.GetStuff(), Times.Exactly(expectedCount));
+            return fixture.Create<Cache>();
         }
 
-        [Test]
-        [TestCase(TimeoutStyle.FixedTimeout)]
-        [TestCase(TimeoutStyle.RenewTimoutOnQuery)]
-        public void SomeItemsExpired(TimeoutStyle style)
+        private CacheKey CreateAnyCacheKey()
         {
-            var timer = new FixedTimer();
-            var cache = new Cache(style, new TimeSpan(5), timer);
-
-            cache.Get(new CacheKey("1"), dummy.GetStuff);
-            cache.Get(new CacheKey("2"), dummy.GetStuff);
-            cache.Get(new CacheKey("3"), dummy.GetStuff);
-
-            clock.Add(new TimeSpan(3));
-            timer.InvokeElapsed();
-
-            cache.Get(new CacheKey("4"), dummy.GetStuff);
-            cache.Get(new CacheKey("5"), dummy.GetStuff);
-            cache.Get(new CacheKey("6"), dummy.GetStuff);
-
-            clock.Add(new TimeSpan(2));
-            timer.InvokeElapsed();
-
-            cache.Get(new CacheKey("1"), dummy.GetStuff);
-            cache.Get(new CacheKey("2"), dummy.GetStuff);
-            cache.Get(new CacheKey("3"), dummy.GetStuff);
-            cache.Get(new CacheKey("4"), dummy.GetStuff);
-            cache.Get(new CacheKey("5"), dummy.GetStuff);
-            cache.Get(new CacheKey("6"), dummy.GetStuff);
-
-            dummyMock.Verify(x => x.GetStuff(), Times.Exactly(9));
-        }
-
-        [Test]
-        public void SomeItemsExpiredSomeRenewed()
-        {
-            var timer = new FixedTimer();
-            var cache = new Cache(TimeoutStyle.RenewTimoutOnQuery, new TimeSpan(5), timer);
-
-            cache.Get(new CacheKey("1"), dummy.GetStuff);
-            cache.Get(new CacheKey("2"), dummy.GetStuff);
-            cache.Get(new CacheKey("3"), dummy.GetStuff);
-            cache.Get(new CacheKey("4"), dummy.GetStuff);
-            cache.Get(new CacheKey("5"), dummy.GetStuff);
-            cache.Get(new CacheKey("6"), dummy.GetStuff);
-
-            clock.Add(new TimeSpan(3));
-            timer.InvokeElapsed();
-
-            cache.Get(new CacheKey("2"), dummy.GetStuff);
-            cache.Get(new CacheKey("3"), dummy.GetStuff);
-            cache.Get(new CacheKey("5"), dummy.GetStuff);
-
-            clock.Add(new TimeSpan(2));
-            timer.InvokeElapsed();
-
-            cache.Get(new CacheKey("1"), dummy.GetStuff);
-            cache.Get(new CacheKey("2"), dummy.GetStuff);
-            cache.Get(new CacheKey("3"), dummy.GetStuff);
-            cache.Get(new CacheKey("4"), dummy.GetStuff);
-            cache.Get(new CacheKey("5"), dummy.GetStuff);
-            cache.Get(new CacheKey("6"), dummy.GetStuff);
-
-            dummyMock.Verify(x => x.GetStuff(), Times.Exactly(9));
-        }
-
-        [Test]
-        public void CacheIsNotUsedWithMethodsOfSameNameAndDifferentClassParameters()
-        {
-            var cache = new Cache(TimeoutStyle.RenewTimoutOnQuery, new TimeSpan(5));
-
-            cache.Get(new CacheKey("Name", new {Gender="Male", Age = 23}), dummy.GetStuff);
-            cache.Get(new CacheKey("Name", new {Gender="Male", Age = 24}), dummy.GetStuff);
-    
-            dummyMock.Verify(x => x.GetStuff(), Times.Exactly(2));
-        }
-
-        [Test]
-        public void CacheIsUsedWithMethodsOfSameNameAndSameClassParameters()
-        {
-            var cache = new Cache(TimeoutStyle.RenewTimoutOnQuery, new TimeSpan(5));
-
-            cache.Get(new CacheKey("Name", new { Gender = "Male", Age = 23 }), dummy.GetStuff);
-            cache.Get(new CacheKey("Name", new { Gender = "Male", Age = 23 }), dummy.GetStuff);
-
-            dummyMock.Verify(x => x.GetStuff(), Times.Once);
+            return fixture.Create<CacheKey>();
         }
     }
 }

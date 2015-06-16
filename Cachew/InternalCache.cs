@@ -61,7 +61,7 @@ namespace Cachew
             while (timedList.Count != 0)
             {
                 var oldest = timedList.First;
-                if (oldest.Value.LastQueried.Add(timeout) <= GetTimeOfDay())
+                if (oldest.Value.LastQueried.Add(timeout) < GetTimeOfDay())
                 {
                     timedList.Remove(oldest);
                 }
