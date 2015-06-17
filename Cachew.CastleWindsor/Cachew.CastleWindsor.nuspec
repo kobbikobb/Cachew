@@ -13,7 +13,7 @@
     <copyright>Copyright 2014</copyright>
     <tags>Cache CastleWindsor</tags>
 	<dependencies>
-      <dependency id="Cachew" version="2.2.0" />
+      <dependency id="Cachew" version="2.2.1" />
     </dependencies>
   </metadata>
 </package>
