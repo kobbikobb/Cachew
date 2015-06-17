@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 
 namespace Cachew
 {
@@ -15,91 +14,55 @@ namespace Cachew
     /// </summary>
     public class Cache : ICache
     {
-        private readonly TimeoutStyle timeoutStyle;
-        private readonly TimeSpan timeout;
-        private readonly Object lockObject = new object();
-        private readonly LinkedList<CacheItem> timedList = new LinkedList<CacheItem>();
+        private readonly ITimer expirationTimer;
+        private readonly IInternalCache internalCache;
 
-        public Cache(TimeoutStyle timeoutStyle, TimeSpan timeout)
+        private readonly LockManager lockManager = new LockManager();
+        
+        public Cache(TimeoutStyle timeoutStyle, TimeSpan timeout) : 
+            this(new InternalCache(timeoutStyle, timeout), new SystemTimer(5000))
         {
-            this.timeoutStyle = timeoutStyle;
-            this.timeout = timeout;
+          
+        }
+
+        internal Cache(IInternalCache iternalCache, ITimer expirationTimer)
+        {
+            if (iternalCache == null) throw new ArgumentNullException("iternalCache");
+            if (expirationTimer == null) throw new ArgumentNullException("expirationTimer");
+            this.internalCache = iternalCache;
+            this.expirationTimer = expirationTimer;
+
+            this.expirationTimer.Elapsed += ExpirationTimerElapsed;
+            this.expirationTimer.Start();
         }
 
         public object Get<T>(CacheKey key, Func<T> func)
         {
-            RemoveExpiredItems();
-       
-            var oldItem = GetCachedItem<T>(key);
-            if (oldItem != null)
-                return GetItemValue<T>(oldItem);
-
-            lock (lockObject)
+            using (lockManager.EnterRead())
             {
-                oldItem = GetCachedItem<T>(key);
-                if (oldItem != null)
-                    return GetItemValue<T>(oldItem);
+                object existingValue;
+                if (internalCache.TryGetValue(key, out existingValue))
+                    return existingValue;
+            }
 
-                var newItem = new CacheItem(key, func());
-                timedList.AddLast(newItem);
-                return newItem.Value;
+            using (lockManager.EnterWrite())
+            {
+                object existingValue;
+                if (internalCache.TryGetValue(key, out existingValue))
+                    return existingValue;
+
+                var newValue = func();
+                internalCache.Add(key, newValue);
+                return newValue;
             }
         }
 
-        private CacheItem GetCachedItem<T>(CacheKey key)
+        private void ExpirationTimerElapsed(object sender, EventArgs e)
         {
-            return timedList.SingleOrDefault(x => x.Key.Equals(key));
-        }
-
-        private object GetItemValue<T>(CacheItem item)
-        {
-            if (timeoutStyle == TimeoutStyle.RenewTimoutOnQuery)
+            using (lockManager.EnterWrite())
             {
-                RenewItem(item);
+                internalCache.RemoveExpiredItems();                
             }
-            return item.Value;
-        }
-
-        private void RenewItem(CacheItem item)
-        {
-            timedList.Remove(item);
-            timedList.AddLast(item);
-            item.LastQueried = GetTimeOfDay();
-        }
-
-        private void RemoveExpiredItems()
-        {
-            while (timedList.Count != 0)
-            {
-                var oldest = timedList.First.Value;
-                if (oldest.LastQueried.Add(timeout) <= GetTimeOfDay())
-                {
-                    timedList.RemoveFirst();
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
-
-        private class CacheItem
-        {
-            public CacheKey Key { get; private set; }
-            public object Value { get; private set; }
-            public TimeSpan LastQueried { get; set; }
-
-            public CacheItem(CacheKey key, object value)
-            {
-                Key = key;
-                Value = value;
-                LastQueried = GetTimeOfDay();
-            }
-        }
-
-        private static TimeSpan GetTimeOfDay()
-        {
-            return Clock.GetTimeOfDay();
         }
     }
 }
