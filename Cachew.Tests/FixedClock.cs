@@ -11,7 +11,7 @@ namespace Cachew.Tests
             this.fixedTimeOfDay = value;
         }
 
-        public DateTime GetNow()
+        public DateTime GetInstant()
         {
              return fixedTimeOfDay; 
         }
