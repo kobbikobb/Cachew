@@ -11,6 +11,7 @@ namespace Cachew
         public CacheKey(string name, params object[] arguments)
         {
             if (name == null) throw new ArgumentNullException("name");
+
             this.name = name;
             this.arguments = arguments;
         }
@@ -21,16 +22,9 @@ namespace Cachew
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-
-            if (!string.Equals(name, other.name))
-                return false;
-
-            if (arguments == null && other.arguments == null)
-                return true;
-            
-            if (arguments == null || other.arguments == null)
-                return false;
-
+            if (!string.Equals(name, other.name)) return false;
+            if (arguments == null && other.arguments == null) return true;
+            if (arguments == null || other.arguments == null) return false;
             return arguments.SequenceEqual(other.arguments);
         }
 

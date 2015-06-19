@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 
 namespace Cachew
 {
@@ -10,7 +9,7 @@ namespace Cachew
     }
 
     /// <summary>
-    /// Keeps a linked list of cached items ordered by time and removes expired items by traversing list forward.
+    /// A simple thread safe cache with a GetOrAdd style function and automatic removal of expired items.
     /// </summary>
     public class Cache : ICache
     {
@@ -18,7 +17,12 @@ namespace Cachew
         private readonly IInternalCache internalCache;
 
         private readonly LockManager lockManager = new LockManager();
-        
+
+        public Cache() : this(TimeoutStyle.RenewTimoutOnQuery, TimeSpan.FromMinutes(5))
+        {
+            
+        }
+
         public Cache(TimeoutStyle timeoutStyle, TimeSpan timeout) : 
             this(new InternalCache(timeoutStyle, timeout), new SystemTimer(5000))
         {
@@ -29,9 +33,10 @@ namespace Cachew
         {
             if (iternalCache == null) throw new ArgumentNullException("iternalCache");
             if (expirationTimer == null) throw new ArgumentNullException("expirationTimer");
+            
             this.internalCache = iternalCache;
-            this.expirationTimer = expirationTimer;
 
+            this.expirationTimer = expirationTimer;
             this.expirationTimer.Elapsed += ExpirationTimerElapsed;
             this.expirationTimer.Start();
         }
@@ -42,14 +47,18 @@ namespace Cachew
             {
                 object existingValue;
                 if (internalCache.TryGetValue(key, out existingValue))
+                {
                     return existingValue;
+                }
             }
 
             using (lockManager.EnterWrite())
             {
                 object existingValue;
                 if (internalCache.TryGetValue(key, out existingValue))
+                {
                     return existingValue;
+                }
 
                 var newValue = func();
                 internalCache.Add(key, newValue);

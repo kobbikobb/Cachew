@@ -4,6 +4,11 @@ using System.Linq;
 
 namespace Cachew
 {
+    /// <summary>
+    /// In memory cache that keeps a linked list of cached items ordered by time 
+    /// and can remove expired items by traversing list forward.
+    /// Not thread safe.
+    /// </summary>
     internal class InternalCache : IInternalCache
     {
         private readonly TimeoutStyle timeoutStyle;
@@ -19,6 +24,8 @@ namespace Cachew
 
         internal InternalCache(TimeoutStyle timeoutStyle, TimeSpan timeout, IClock clock)
         {
+            if (clock == null) throw new ArgumentNullException("clock");
+
             this.timeoutStyle = timeoutStyle;
             this.timeout = timeout;
             this.clock = clock;
